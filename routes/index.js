@@ -3,7 +3,7 @@ var router = express.Router();
 // var { body, validationResult } = require("express-validator");
 var nodemailer = require("nodemailer");
 var config = require("../config");
-const { route } = require(".");
+// const { route } = require(".");
 var transporter = nodemailer.createTransport(config.mailer);
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -27,7 +27,7 @@ router
     req.checkBody("name", "Empty name").notEmpty();
     req.checkBody("email", "Invalid Email").isEmail();
     req.checkBody("message", "Empty message").notEmpty();
-    var errors = req.validationErrors();
+    var errors = req.getValidationResult();
     // now check for errors if any
     if (errors) {
       // then send the following response
@@ -55,11 +55,5 @@ router
       });
     }
   });
-// router for login and register
-router.get("/login", function (req, res, next) {
-  res.render("login", { title: "Login" });
-});
-router.get("/register", function (req, res, next) {
-  res.render("register", { title: "Register a new account" });
-});
+
 module.exports = router;

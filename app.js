@@ -6,13 +6,20 @@ var logger = require("morgan");
 // import express-validator library
 var expressValidator = require("express-validator");
 
-var mongoose = require('mongoose')
-var config = require('./config')
+var mongoose = require("mongoose");
+var passport = require("passport");
+var session = require("express-session");
+require("./passport");
+var config = require("./config");
 // var { body, validationResult } = require("express-validator");
-var indexRouter = require("./routes/index");
-// var usersRouter = require("./routes/users"); 
-mongoose.connect(config.dbConnstring )
-global.User = require('./models/user')
+var indexRoute = require("./routes/index");
+var authRoute = require("./routes/auth");
+mongoose
+  .connect(config.dbConnstring)
+  .then(() => console.log("Database connection successful!"))
+  .catch((err) => console.error("Database connection error:", err));
+
+global.User = require("./models/user");
 
 var app = express();
 
@@ -24,12 +31,20 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({
+  secret: config.sessionKey,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {secure: true}
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 // use express validator
 app.use(expressValidator());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", indexRouter);
-// app.use("/users", usersRouter);
+app.use("/", indexRoute);
+app.use("/", authRoute);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
