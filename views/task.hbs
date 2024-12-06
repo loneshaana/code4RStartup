@@ -1,0 +1,85 @@
+<div>
+    <div class="row">
+        <div class="col-md-8">
+            <textarea id="code-screen"></textarea>
+        </div>
+        <div class="col-md-4" id="chatbox">
+            <!-- Chat Box -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    CHAT ROOM
+                    <span class="pull-right" id="chatbox-username">
+                        {{#if user}}
+                        {{user.name}}
+                        {{/if}}
+                    </span>
+                </div>
+                <div class="panel-body">
+                    <ul class="media-list" style="height: 300px; overflow-y: scroll;" id="chatbox-listMessages">
+                        <!-- Messages will be appended here -->
+                    </ul>
+                </div>
+                <div class="panel-footer">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Enter Message" id="userMessage" />
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-primary" onclick="sendMessage()">Send</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include CodeMirror -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+
+<!-- Include Socket.IO Client -->
+<script src="/socket.io/socket.io.js"></script> <!-- Corrected Path for Socket.IO client -->
+
+<script>
+    // Connect to the Socket.IO server
+    var socket = io.connect('http://localhost:3000'); 
+
+    // Initialize the CodeMirror editor
+    var editor = CodeMirror.fromTextArea(document.getElementById("code-screen"), {
+        lineNumbers: true,
+        mode: "javascript",
+        theme: "monokai"
+    });
+
+    // Generate or fetch the username
+    var username = $('#chatbox-username').text();
+    if (username === "") {
+        var userId = Math.floor(Math.random() * 9999).toString();
+        username = "User" + userId;
+        $("#chatbox-username").text(username);
+    }
+
+    // Function to create message HTML structure
+    var userMessage = function(name, text) {
+        return (
+            '<li class="media"> <div class="media-body"> <div class="media">' +
+            '<div class="media-body" ' +
+            '<b>' + name + '</b>: ' + text +
+            '<hr/> </div></div></div></li>'
+        );
+    };
+
+    // Function to send message to server
+    var sendMessage = function() {
+        var userMessageText = $('#userMessage').val();
+        if (userMessageText.trim() !== "") {
+            socket.emit('chatMessage', { message: userMessageText, username: username });
+            $('#userMessage').val(""); // Clear input field
+        }
+    };
+
+    // Listen for 'chatMessage' events from the server and display messages
+    socket.on('chatMessage', function(data) {
+        $('#chatbox-listMessages').append(userMessage(data.username, data.message));
+        $('#chatbox-listMessages').scrollTop($('#chatbox-listMessages')[0].scrollHeight); // Scroll to bottom
+    });
+</script>

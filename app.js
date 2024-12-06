@@ -14,12 +14,15 @@ var config = require("./config");
 // var { body, validationResult } = require("express-validator");
 var indexRoute = require("./routes/index");
 var authRoute = require("./routes/auth");
+var taskRoute = require("./routes/task");
+
 mongoose
   .connect(config.dbConnstring)
   .then(() => console.log("Database connection successful!"))
   .catch((err) => console.error("Database connection error:", err));
 
 global.User = require("./models/user");
+global.Task = require("./models/task");
 
 var app = express();
 
@@ -31,31 +34,35 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(session({
-  secret: config.sessionKey,
-  resave: false,
-  saveUninitialized: true,
-  // cookie: {secure: true}
-}));
+app.use(
+  session({
+    secret: config.sessionKey,
+    resave: false,
+    saveUninitialized: true,
+    // cookie: {secure: true}
+  })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 // use express validator
 // app.use(expressValidator());
 app.use(express.static(path.join(__dirname, "public")));
 // creating a session variable
-app.use(function(req, res, next){
-  if(req.isAuthenticated()){
-    res.locals.user = req.user;  
+app.use(function (req, res, next) {
+  if (req.isAuthenticated()) {
+    res.locals.user = req.user;
   }
-  next();   // move to the next blocks 
-})
+  next(); // move to the next blocks
+});
 
 app.use("/", indexRoute);
 app.use("/", authRoute);
+app.use("/", taskRoute);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  next(createError(404));
+  const err = new createError(404, "page not found!");
+  next(err);
 });
 
 // error handler
