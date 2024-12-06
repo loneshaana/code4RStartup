@@ -35,13 +35,20 @@ app.use(session({
   secret: config.sessionKey,
   resave: false,
   saveUninitialized: true,
-  cookie: {secure: true}
+  // cookie: {secure: true}
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 // use express validator
 // app.use(expressValidator());
 app.use(express.static(path.join(__dirname, "public")));
+// creating a session variable
+app.use(function(req, res, next){
+  if(req.isAuthenticated()){
+    res.locals.user = req.user;  
+  }
+  next();   // move to the next blocks 
+})
 
 app.use("/", indexRoute);
 app.use("/", authRoute);

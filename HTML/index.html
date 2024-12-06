@@ -2,10 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="author" content="Ahsaan">
-    <meta name="Description" content="This page contains all the things, I am learning how to create as I learn Html">
+    <meta name="author" content="Ahsaan" />
+    <meta
+      name="Description"
+      content="This page contains all the things, I am learning how to create as I learn Html"
+    />
     <title>My first web page</title>
-    <link rel="Icon" href="marutiwagnor.jpg" type="image/x-icon">   <!-- page has now a fav icon -->
+    <link rel="Icon" href="marutiwagnor.jpg" type="image/x-icon" />
+    <link rel="stylesheet" href="main.css">
+    <!-- page has now a fav icon -->
     <style>
       html {
         font-size: 22px;
@@ -14,14 +19,74 @@
         background-color: #333;
         color: whitesmoke;
       }
+      a:visited {
+        color: lightgreen;
+      }
+      a:hover,
+      a:active {
+        color: #eee;
+      }
       
     </style>
   </head>
   <body>
     <!-- this section is seen on the page-->
-    <h1>Hello world</h1>
+    <hr />
+    <h1>&nbsp;Hello world</h1>
+    <h2>&nbsp;This is my first web page</h2>
+    <h3>&nbsp;My Daily Schedule</h3>
     <!-- biggest heading-->
-    <p>This is my first web page</p>
+    <hr />
+    <h2>I'm ready to Learn HTML</h2>
+    <p>Let me tell you how</p>
+    <ol>
+      <li>I learn more about web dev</li>
+      <li>I plan out my scedule</li>
+      <li>
+        I use resources from
+        <abbr title="Mozilla Developer Netword">
+          <a href="https://developer.mozilla.org/en-US/"></a>MDN</abbr
+        >
+      </li>
+      <!-- here we are giving the absolute address reference-->
+    </ol>
+
+    <ul>
+      <!-- Bullet points.-->
+      <li><p>I am also planning a vacation</p></li>
+      <li><p>I live in kashmir, so I want to visit mountains</p></li>
+
+      <address>
+        <p>
+          Jammu & Kashmir <br />
+          Srinagar, Sopore <br />
+          193201
+        </p>
+      </address>
+      <!--Adding an email link for contact-->
+      <ul>
+        <li>
+          Contact me at <a href="mailto:random@gmail.com">My email address</a>
+          <!-- if we click and it will show us what type of email you want to use-->
+        </li>
+      </ul>
+    </ul>
+
+    <h3>Places i like to visit</h3>
+    <p>I have a good things about the caribbean</p>
+    <p>Places i want to avoid</p>
+    <dl>
+      <dt>North Pole</dt>
+      <dd>I hear this is <strong>Cold</strong></dd>
+
+      <dt>South Pole</dt>
+      <dd>This is also cold</dd>
+    </dl>
+    <p>Anywhere cold. <strong>NO Way</strong></p>
+    <hr />
+
+    &lt;&lt;&lt;&copy;&nbsp;<a href="about.html">Ahsaan</a> &gt;&gt;&gt;
+    <!--Creating a relative reference-->
   </body>
 </html>
 <!--Element=>consists of opening and closing tags-->
