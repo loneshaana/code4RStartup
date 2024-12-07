@@ -31,6 +31,7 @@
         </div>
     </div>
 </div>
+<input type="hidden" value="{{roomId}}" id="roomId" />
 
 <!-- Include CodeMirror -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
@@ -41,7 +42,8 @@
 
 <script>
     // Connect to the Socket.IO server
-    var socket = io.connect('http://localhost:3000'); 
+    //{ { !-- var socket = io.connect('http://192.168.1.7:3000'); --} }
+    var socket = io.connect('http://localhost:3000');
 
     // Initialize the CodeMirror editor
     var editor = CodeMirror.fromTextArea(document.getElementById("code-screen"), {
@@ -57,9 +59,13 @@
         username = "User" + userId;
         $("#chatbox-username").text(username);
     }
+    var roomId = $('#roomId').val();
+    if (roomId) {
+        socket.emit('joinRoom', { room: roomId })
+    }
 
     // Function to create message HTML structure
-    var userMessage = function(name, text) {
+    var userMessage = function (name, text) {
         return (
             '<li class="media"> <div class="media-body"> <div class="media">' +
             '<div class="media-body" ' +
@@ -69,17 +75,23 @@
     };
 
     // Function to send message to server
-    var sendMessage = function() {
+    function sendMessage() {
+        console.log("SendMessage called")
         var userMessageText = $('#userMessage').val();
         if (userMessageText.trim() !== "") {
+            console.log("Sending message", userMessageText)
             socket.emit('chatMessage', { message: userMessageText, username: username });
             $('#userMessage').val(""); // Clear input field
         }
     };
 
     // Listen for 'chatMessage' events from the server and display messages
-    socket.on('chatMessage', function(data) {
+    socket.on('chatMessage', function (data) {
         $('#chatbox-listMessages').append(userMessage(data.username, data.message));
         $('#chatbox-listMessages').scrollTop($('#chatbox-listMessages')[0].scrollHeight); // Scroll to bottom
     });
+    // handle disconnections
+    {{!-- socket.on('disconnect', function () {
+        alert('Disconnected from the server! Please try again.')
+    }) --}}
 </script>

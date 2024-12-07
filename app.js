@@ -1,4 +1,8 @@
 var createError = require("http-errors");
+
+// var http = require('http');   // -----
+
+
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
@@ -25,6 +29,9 @@ global.User = require("./models/user");
 global.Task = require("./models/task");
 
 var app = express();
+
+// var server = http.createServer(app); // -----
+
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -75,5 +82,10 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render("error");
 });
+
+// -----
+// server.listen(3000, '192.168.1.7', function() {
+//   console.log('Server is running on port 3000');
+// });
 
 module.exports = app;
