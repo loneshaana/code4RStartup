@@ -20,8 +20,10 @@ var indexRoute = require("./routes/index");
 var authRoute = require("./routes/auth");
 var taskRoute = require("./routes/task");
 
+const dbConnString = process.env.AZURE_COSMOS_CONNECTIONSTRING || config.dbConnstring;
+
 mongoose
-  .connect(config.dbConnstring)
+  .connect(dbConnString)
   .then(() => console.log("Database connection successful!"))
   .catch((err) => console.error("Database connection error:", err));
 
