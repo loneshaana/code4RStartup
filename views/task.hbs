@@ -37,10 +37,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
 
+<script src="/plugins/ot/ot.js"></script>
 <!-- Include Socket.IO Client -->
 <script src="/socket.io/socket.io.js"></script> <!-- Corrected Path for Socket.IO client -->
 
 <script>
+    var EditorClient = ot.EditorClient;
+    var SocketIOAdapter = ot.SocketIOAdapter;
+    var CodeMirrorAdapter = ot.CodeMirrorAdapter;
     // Connect to the Socket.IO server
     //{ { !-- var socket = io.connect('http://192.168.1.7:3000'); --} }
     var socket = io.connect('http://localhost:3000');
@@ -48,21 +52,36 @@
     // Initialize the CodeMirror editor
     var editor = CodeMirror.fromTextArea(document.getElementById("code-screen"), {
         lineNumbers: true,
-        mode: "javascript",
+       // mode: "javascript",
         theme: "monokai"
     });
 
+
+  var code = $('#code-screen').val();
+    var cmClient;
+    function init(str, revision, clients, serverAdapter) {
+        if(!code){
+        editor.setValue(str)
+        }
+        cmClient = window.cmClient = new EditorClient(
+            revision, clients, serverAdapter, new CodeMirrorAdapter(editor)
+        )
+    }
+    socket.on('doc', function(obj){
+        init(obj.str, obj.revision, obj.clients, new SocketIOAdapter(socket))
+    })
+
     // Generate or fetch the username
-    var username = $('#chatbox-username').text();
+    var username = $('#chatbox-username').text().trim();
     if (username === "") {
         var userId = Math.floor(Math.random() * 9999).toString();
         username = "User" + userId;
         $("#chatbox-username").text(username);
     }
     var roomId = $('#roomId').val();
-    if (roomId) {
-        socket.emit('joinRoom', { room: roomId })
-    }
+    //if (roomId) {
+    socket.emit('joinRoom', { room: roomId, username: username })
+    //}
 
     // Function to create message HTML structure
     var userMessage = function (name, text) {
@@ -91,7 +110,7 @@
         $('#chatbox-listMessages').scrollTop($('#chatbox-listMessages')[0].scrollHeight); // Scroll to bottom
     });
     // handle disconnections
-    {{!-- socket.on('disconnect', function () {
-        alert('Disconnected from the server! Please try again.')
-    }) --}}
+    //  socket.on('disconnect', function () {
+    //    alert('Disconnected from the server! Please try again.')
+    // }) 
 </script>
