@@ -1,10 +1,32 @@
 <div>
     <div class="row">
         <div class="col-md-8">
-            <textarea id="code-screen"></textarea>
+            {{!-- instead of displaying markdown text, we will display content from the data base on the code editor
+            --}}
+            <textarea id="code-screen">{{content}}</textarea>
         </div>
         <div class="col-md-4" id="chatbox">
-            <!-- Chat Box -->
+            <!-- VIDEO CALL -->
+
+            <div id="video-container">
+                <video autoplay id="second-video"></video>
+                <video autoplay id="my-video" muted="true"></video>
+                <div id="step2">
+                    <p>Your ID: <span id="my-id">...</span></p>
+                    <div class="form-online">
+                        <input type="text" class="form-control" placeholder="Call User Id" id="callTo-id">
+                        <a href="#" class="btn btn-sm btn-success" id="make-call">Call</a>
+                    </div>
+                </div>
+                <div id="step3">
+                    <p>Talk to <span id="second-id">...</span></p>
+                    <a href="#" class="btn btn-sm btn-danger" id="end-call">End call</a>
+
+                </div>
+            </div>
+
+
+            <!-- Chat Room -->
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     CHAT ROOM
@@ -40,34 +62,41 @@
 <script src="/plugins/ot/ot.js"></script>
 <!-- Include Socket.IO Client -->
 <script src="/socket.io/socket.io.js"></script> <!-- Corrected Path for Socket.IO client -->
+{{!--
+<script src="http://cdn.peerjs.com/0.3/peer.js"></script> --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/0.3.18/peer.js"></script>
+
+{{!-- <script src="/plugins/lib/peer.js"></script> --}}
+
+
 
 <script>
     var EditorClient = ot.EditorClient;
     var SocketIOAdapter = ot.SocketIOAdapter;
     var CodeMirrorAdapter = ot.CodeMirrorAdapter;
     // Connect to the Socket.IO server
-    //{ { !-- var socket = io.connect('http://192.168.1.7:3000'); --} }
-    var socket = io.connect('http://localhost:3000');
+    var socket = io.connect('http://192.168.1.7:3000')
+    // var socket = io.connect('http://localhost:3000');
 
-    // Initialize the CodeMirror editor
+    // Initialize the CodeMirroreditor
     var editor = CodeMirror.fromTextArea(document.getElementById("code-screen"), {
         lineNumbers: true,
-       // mode: "javascript",
+        // mode: "javascript",
         theme: "monokai"
     });
 
 
-  var code = $('#code-screen').val();
+    var code = $('#code-screen').val();
     var cmClient;
     function init(str, revision, clients, serverAdapter) {
-        if(!code){
-        editor.setValue(str)
+        if (!code) { // if we do not have any updated code, then set the default string value
+            editor.setValue(str)
         }
         cmClient = window.cmClient = new EditorClient(
             revision, clients, serverAdapter, new CodeMirrorAdapter(editor)
         )
     }
-    socket.on('doc', function(obj){
+    socket.on('doc', function (obj) {
         init(obj.str, obj.revision, obj.clients, new SocketIOAdapter(socket))
     })
 
@@ -101,6 +130,8 @@
             console.log("Sending message", userMessageText)
             socket.emit('chatMessage', { message: userMessageText, username: username });
             $('#userMessage').val(""); // Clear input field
+        } else {
+            console.warn('Message is empty, not sending it')
         }
     };
 
@@ -113,4 +144,134 @@
     //  socket.on('disconnect', function () {
     //    alert('Disconnected from the server! Please try again.')
     // }) 
+
+    // PeerJS
+    // Compatibility shim
+    // BELOW LINE OF CODE WILL DISPLAY THE CAMERA
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    // PeerJS object
+    var peer = new Peer(username + roomId, { key: 's0xuhlvq9g2satt9' });
+    console.log("Peer id is:", peer)
+
+    peer.on('open', function () {
+        $('#my-id').text(peer.id);
+    });
+    // Navigator object is part of the Web APIs and provides information about the web browser and the user's envirnonment. 
+    // It acts as an interface to access browser-specific information and perform certain actions related to the browser
+
+    // Receiving a <call></call>
+    peer.on('call', function (call) {
+        // Answer the call automatically (instead of prompting user) for demo purposes
+        alert("Call Receiving")
+        call.answer(window.localStream);
+        step3(call);
+    });
+
+    peer.on('error', function (err) {
+        alert(err.message);
+        // Return to step 2 if error occurs
+        step2();
+    });
+
+    // Click handlers setup
+    $(function () {
+        $('#make-call').click(function () {
+            // Initiate a call!
+            var otherUserId = $('#callTo-id').val();
+            var call = peer.call(otherUserId, window.localStream);
+            step3(call);
+        });
+        $('#end-call').click(function () {
+            window.existingCall.close();
+            step2();
+        });
+        step1();
+    });
+    function step1() {
+        // Get audio/video stream
+        navigator.getUserMedia({ audio: true, video: true }, function (stream) {
+            // Set your video displays
+            $('#my-video').prop('src', URL.createObjectURL(stream));
+            window.localStream = stream;
+            step2();  // hides step1 and step2, and shows step2
+        }, function (error) {
+            console.log('Failed to get media stream', error)
+            $('#step1-error').show();
+        });
+    }
+
+    function step2() {
+        $('#step1, #step3').hide();
+        $('#step2').show();
+    }
+
+    function step3(call) {
+        // Hang up on an existing call if present
+        if (window.existingCall) {
+            window.existingCall.close();
+        }
+        if (call) { // check if 'call' is defined before accessing its properties
+            console.log(" waiting for other user stream.")
+            call.on('stream', function (stream) {
+                $('#second-video').prop('src', URL.createObjectURL(stream));
+            });
+
+            // Wait for stream on the call, then set peer video display
+
+            // UI stuff
+            window.existingCall = call;
+            $('#second-id').text(call.peer);
+            call.on('close', step2);
+            $('#step1, #step2').hide();
+            $('#step3').show();
+        }
+        else {
+            console.log('Call object is undefined')
+        }
+    }
+
+
+    function submitCode() {
+        //get the screen code 
+        var screenCode = document.getElementsByClassName(" CodeMirror-line ");
+        var code = "";
+        for (var i = 0; i < screenCode.length; i++) {
+            code = code + screenCode[i].innerText + "\n";
+        }
+        console.log(code);
+
+        //get the languge you choose
+        var language = document.getElementById("language-code");
+        var language_choose = language.options[language.selectedIndex].value;
+        console.log(language_choose)
+
+        axios.post('https://api.jdoodle.com/v1/execute/', {
+            //   headers: {
+            // 	  'Access-Control-Allow-Origin': '*',
+            // 	   'Accept': 'application/json',
+            //     'Content-Type': 'application/json',
+            // 	},
+            "clientId": "your-client-id",
+            "clientSecret": "your-client-secret",
+            "script": `${code}`,
+            "language": `${language_choose}`,
+            "versionIndex": "0"
+
+            // "clientId": "b540e49e52dd53095ae926aecd9ffda0", "clientSecret": "19a95448b1b116e933bc1270382c2d8334f439cc77a2c00673bc6bd9159c6362", "script": `${code}`, "language": `${language_choose}`, "versionIndex": "0"
+        })
+            .then(function (response) {
+                // console.log(JSON.stringify(response));
+                const result = response.data.output;
+                console.log(result);
+
+                document.getElementById("result-submit").innerText = ` complied : \n ${result}`;
+            })
+            .catch(function (error) {
+                console.log("Error submitting code", error);
+                document.getElementById('result-submit').innerText = "Error occured while executing code"
+            });
+
+
+    }
+
 </script>

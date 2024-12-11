@@ -24,10 +24,15 @@ module.exports = function (server) {
           [],
           data.room,
           async function (socket, cb) {
-            var self = this
-            var task = await Task.findByIdAndUpdate(data.room, {content:self.document})
+            /**
+           * Everytime some ones opens a new task/existing, find the content of that specific task and update content with the latest one
+           */
+            var self = this; 
+            // update task identified by data.room with the content field set to self.doc 
+            var task = await Task.findByIdAndUpdate(data.room, {content:self.document})  // content is equal to content of cod editor
             if(!task) return cb(false)
             cb(true);
+          
           }
         );
         roomList[data.room] = socketIOServer;

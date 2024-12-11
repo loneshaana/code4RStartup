@@ -1,5 +1,7 @@
 var mongoose = require("mongoose");
 var taskSchema = new mongoose.Schema({
+     // save the editor content, so that after refresh the code still remains
+     content : String
 
 
 });

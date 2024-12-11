@@ -83,9 +83,4 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-// -----
-// server.listen(3000, '192.168.1.7', function() {
-//   console.log('Server is running on port 3000');
-// });
-
 module.exports = app;

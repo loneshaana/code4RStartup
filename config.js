@@ -8,7 +8,7 @@ module.exports = {
       pass: "afpixhqgyzsoyljl",
     },
   },
-  dbConnstring: "mongodb://127.0.0.1:27017/codeshare",
+  dbConnstring: "mongodb://127.0.0.1:27017/code4StartUp",
   sessionKey: "HaloCode4Share",
 };
 // creating a connection string to the database
