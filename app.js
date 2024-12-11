@@ -20,7 +20,7 @@ var indexRoute = require("./routes/index");
 var authRoute = require("./routes/auth");
 var taskRoute = require("./routes/task");
 
-const dbConnString = process.env.AZURE_COSMOS_CONNECTIONSTRING || config.dbConnstring;
+const dbConnString = process.env.AZURE_COSMOS_CONNECTIONSTRING || config.dbConnString;
 
 mongoose
   .connect(dbConnString)

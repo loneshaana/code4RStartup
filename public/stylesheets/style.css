@@ -1,5 +1,4 @@
 body {
-  min-height: 2000px;
   padding-top: 70px;
 }
 .form-sign {
@@ -9,7 +8,7 @@ body {
 }
 
 .CodeMirror{
-  height: 600px;
+  height: 100vh;
 
 }
 *, *:before, *after{
@@ -18,18 +17,15 @@ body {
   box-sizing: border-box;
 }
 #my-video{
-  margin-top: 15px;
-  width: 280px;
+  width: 15vw;
   height: auto;
   background-color: #eee;
 
 }
 #second-video{
-  width: 100%;
-  height: 75%;
-  max-height: 480px;
+  width: 15vw;
+  height: auto;
   background-color: #eee;
-
 }
 #video-container{
   text-align: center;
