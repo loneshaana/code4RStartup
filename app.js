@@ -13,6 +13,7 @@ var expressValidator = require("express-validator");
 var mongoose = require("mongoose");
 var passport = require("passport");
 var session = require("express-session");
+var videoRoute = require("./routes/video");
 require("./passport");
 var config = require("./config");
 // var { body, validationResult } = require("express-validator");
@@ -32,10 +33,6 @@ global.Task = require("./models/task");
 
 var app = express();
 
-// var server = http.createServer(app); // -----
-
-
-// view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
 
@@ -63,6 +60,7 @@ app.use(function (req, res, next) {
   }
   next(); // move to the next blocks
 });
+app.use("/", videoRoute);
 
 app.use("/", indexRoute);
 app.use("/", authRoute);

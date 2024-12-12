@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Video Calling</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 10px;
+        }
+
+        #video-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        video {
+            width: 100%;
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .form-inline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        #step3 {
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .mute-btn {
+            margin-top: 10px;
+            background-color: #dc3545;
+        }
+
+        .mute-btn:hover {
+            background-color: #c82333;
+        }
+
+        @media (min-width: 600px) {
+            .form-inline {
+                flex-direction: row;
+            }
+
+            button {
+                width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h5>User ID: {{roomId}}</h5>
+        <div id="video-container">
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+                <div>
+                    <video autoplay id="my-video" muted></video>
+                    <button class="mute-btn" id="mute-btn">Mute</button>
+                </div>
+                <div>
+                    <video autoplay id="second-video"></video>
+                </div>
+            </div>
+
+            <div class="form-inline">
+                <input type="text" class="form-control" placeholder="Call User ID" id="callTo-id">
+                <button onclick="makeCall()" id="make-call">Call</button>
+            </div>
+
+            <div id="step3">
+                <p>Connected with <span id="second-id">...</span></p>
+                <button onclick="endCall()" class="btn btn-sm btn-danger">End Call</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/0.3.18/peer.js"></script>
+    <script>
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+        var username = "{{roomId}}";
+        var peer = new Peer(username, { key: '12345' });
+        var currentCall = null;
+
+        const myVideo = document.getElementById('my-video');
+        const secondVideo = document.getElementById('second-video');
+        const muteBtn = document.getElementById('mute-btn');
+        const callButton = document.getElementById('make-call');
+        const step3 = document.getElementById('step3');
+        
+        let localStream;
+
+        peer.on('open', function (id) {
+            console.log("Peer Connection Open", id);
+            showMedia();
+        });
+
+        peer.on('call', function (call) {
+            if (currentCall) {
+                console.log("Already on a call");
+                return;
+            }
+
+            alert("Incoming Call");
+            call.answer(localStream);
+            setupCall(call);
+        });
+
+        function showMedia() {
+            navigator.getUserMedia({ audio: true, video: true }, function (stream) {
+                localStream = stream;
+                myVideo.srcObject = stream;
+            }, function (error) {
+                console.log('Failed to get media stream', error);
+            });
+        }
+
+        function makeCall() {
+            if (currentCall) {
+                alert("You are already in a call.");
+                return;
+            }
+
+            const otherUserId = document.getElementById('callTo-id').value;
+            if (!otherUserId) {
+                alert("Please enter a User ID to call.");
+                return;
+            }
+
+            const call = peer.call(otherUserId, localStream);
+            setupCall(call);
+        }
+
+        function setupCall(call) {
+            currentCall = call;
+            callButton.disabled = true;
+
+            call.on('stream', function (remoteStream) {
+                secondVideo.srcObject = remoteStream;
+                step3.style.display = 'block';
+                document.getElementById('second-id').innerText = call.peer;
+            });
+
+            call.on('close', function () {
+                notifyCallEnd();
+                endCall();
+            });
+        }
+
+        function notifyCallEnd() {
+            alert("The other user has ended the call.");
+        }
+
+        function endCall() {
+            if (currentCall) {
+                currentCall.close();
+                currentCall = null;
+            }
+
+            secondVideo.srcObject = null;
+            step3.style.display = 'none';
+            callButton.disabled = false;
+        }
+
+        muteBtn.addEventListener('click', function () {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                audioTrack.enabled = !audioTrack.enabled;
+                muteBtn.innerText = audioTrack.enabled ? 'Mute' : 'Unmute';
+            }
+        });
+    </script>
+</body>
+
+</html>

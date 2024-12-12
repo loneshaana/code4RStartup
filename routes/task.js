@@ -17,6 +17,7 @@ var router = express.Router();
 router.get("/createTask", async function (req, res) {
   try {
     var newTask = new Task();
+    newTask.owner = req.user.name;
     // save the task using async/await
     const data = await newTask.save();
     res.redirect("/task/" + data._id);
@@ -29,8 +30,9 @@ router.get("/createTask", async function (req, res) {
 router.get("/task/:id", async function (req, res) {
   try {
     const task = await Task.findOne({ _id: req.params.id });
+    console.log(task);
     if (task) {  // represents the object
-      res.render("task", { content: task.content, roomId : task._id});  // 
+      res.render("task", { content: task.content,taskOwner:task.owner, roomId : task._id});  // 
     } else {
       res.render("error", { message: "Task not found" });
     }
