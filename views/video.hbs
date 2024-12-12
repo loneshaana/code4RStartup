@@ -211,6 +211,7 @@
                 audioTrack.enabled = !audioTrack.enabled;
                 muteBtn.innerText = audioTrack.enabled ? 'Mute' : 'Unmute';
             }
+            document.querySelector('#my-video').muted = !document.querySelector('#my-video').muted;
         });
     </script>
 </body>
