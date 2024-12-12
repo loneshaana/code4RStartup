@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
+            padding-top: 60px;
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -93,7 +94,6 @@
 
 <body>
     <div class="container">
-        <h5>User ID: {{roomId}}</h5>
         <div id="video-container">
             <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
                 <div>
@@ -103,6 +103,8 @@
                 <div>
                     <video autoplay id="second-video"></video>
                 </div>
+        <h5>User ID: {{roomId}}</h5>
+
             </div>
 
             <div class="form-inline">
@@ -130,7 +132,7 @@
         const muteBtn = document.getElementById('mute-btn');
         const callButton = document.getElementById('make-call');
         const step3 = document.getElementById('step3');
-        
+
         let localStream;
 
         peer.on('open', function (id) {
