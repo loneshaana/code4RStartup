@@ -1,6 +1,4 @@
-body {
-  padding-top: 60px;
-}
+
 .form-sign {
   max-width: 330px;
   padding: 15px;  
@@ -9,14 +7,19 @@ body {
 
 .CodeMirror{
   height: 100vh;
-
+}
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+  background-color: beige;
 }
 *, *:before, *after{
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
-#my-video{
+/* #my-video{
   width: 15vw;
   height: auto;
   background-color: #eee;
@@ -29,11 +32,11 @@ body {
   background-color: #493131;
   border: 1px solid green;
   border-radius: 3%;
-}
+} */
 
-#video-container{
+/* #video-container{
   text-align: center;
-}
+} */
 
 #step1-error, #step2, #step3{
    display: none;
