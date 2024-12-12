@@ -9,8 +9,21 @@
             <!-- VIDEO CALL -->
 
             <div id="video-container">
-                <video autoplay id="second-video"></video>
-                <video autoplay id="my-video" muted="true"></video>
+                <div style="display:inline-flex;">
+                    <div>
+                        <video autoplay id="second-video"></video>
+                        <button id="mute-btn">
+                            <span id="mute-icon">🔇</span>
+                        </button>
+                    </div>
+
+                    <div>
+                        <video autoplay id="my-video" muted="true"></video>
+                        <button id="snd-mute-btn">
+                            <span id="snd-mute-icon">🔇</span>
+                        </button>
+                    </div>
+                </div>
                 <div id="step2">
                     <p>Your ID: <span id="my-id">...</span></p>
                     <div class="form-online">
@@ -24,7 +37,6 @@
 
                 </div>
             </div>
-
 
             <!-- Chat Room -->
             <div class="panel panel-primary">
@@ -50,6 +62,15 @@
                     </div>
                 </div>
             </div>
+
+            <div>
+                <div class="panel-heading">
+                    Connected Users
+                    <div id="user-list-container">
+                        <!-- Users will be appended here -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -66,17 +87,56 @@
 <script src="http://cdn.peerjs.com/0.3/peer.js"></script> --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/0.3.18/peer.js"></script>
 
-{{!-- <script src="/plugins/lib/peer.js"></script> --}}
+{{!--
+<script src="/plugins/lib/peer.js"></script> --}}
 
+<script>
 
+    const videoPlayer = document.getElementById("my-video");
+    const muteButton = document.getElementById("snd-mute-btn");
+    const muteIcon = document.getElementById("snd-mute-icon");
+
+    muteButton.addEventListener("click", () => {
+        if (videoPlayer.muted) {
+            videoPlayer.muted = false;
+            muteIcon.textContent = "🔊"; // Speaker icon
+        } else {
+            videoPlayer.muted = true;
+            muteIcon.textContent = "🔇"; // Muted icon
+        }
+    });
+
+    const secondvideoPlayer = document.getElementById("second-video");
+    const secondmuteButton = document.getElementById("mute-btn");
+    const secondmuteIcon = document.getElementById("mute-icon");
+
+    secondmuteButton.addEventListener("click", () => {
+        if (secondvideoPlayer.muted) {
+            secondvideoPlayer.muted = false;
+            secondmuteIcon.textContent = "🔊"; // Speaker icon
+        } else {
+            secondvideoPlayer.muted = true;
+            secondmuteIcon.textContent = "🔇"; // Muted icon
+        }
+    });
+
+</script>
 
 <script>
     var EditorClient = ot.EditorClient;
     var SocketIOAdapter = ot.SocketIOAdapter;
     var CodeMirrorAdapter = ot.CodeMirrorAdapter;
     // Connect to the Socket.IO server
-    var socket = io.connect('https://codeshare.azurewebsites.net')
-    // var socket = io.connect('http://localhost:3000');
+    var options = {
+        reconnection: true,            // Enables auto-reconnection
+        reconnectionAttempts: 10,      // Max attempts to reconnect
+        reconnectionDelay: 1000,       // Initial delay between attempts (ms)
+        reconnectionDelayMax: 5000,    // Max delay between attempts (ms)
+        timeout: 20000                 // Connection timeout before an error (ms)
+    }
+    
+    var socket = io.connect('https://codeshare.azurewebsites.net',options)
+    // var socket = io.connect('http://localhost:3000', options);
 
     // Initialize the CodeMirroreditor
     var editor = CodeMirror.fromTextArea(document.getElementById("code-screen"), {
@@ -100,6 +160,9 @@
         init(obj.str, obj.revision, obj.clients, new SocketIOAdapter(socket))
     })
 
+    socket.on("disconnect", function () {
+        alert("Disconnected from the server! Please try again.")
+    })
     // Generate or fetch the username
     var username = $('#chatbox-username').text().trim();
     if (username === "") {
@@ -110,7 +173,10 @@
     var roomId = $('#roomId').val();
     //if (roomId) {
     socket.emit('joinRoom', { room: roomId, username: username })
-    //}
+
+    socket.on("ping", function (data) {
+        socket.emit("pong", { room: roomId, username: username })
+    })
 
     // Function to create message HTML structure
     var userMessage = function (name, text) {
@@ -140,6 +206,31 @@
         $('#chatbox-listMessages').append(userMessage(data.username, data.message));
         $('#chatbox-listMessages').scrollTop($('#chatbox-listMessages')[0].scrollHeight); // Scroll to bottom
     });
+
+    socket.on('ConnectedUsers', function (data) {
+        var keys = Object.values(data);
+        var users = keys.map(key => key.name);
+        console.log("Connected Users", users);
+        // Target the container div
+        var containerDiv = document.getElementById("user-list-container");
+
+        // Clear previous list (if any)
+        containerDiv.innerHTML = "";
+
+        // Create a new UL element
+        var ul = document.createElement("ul");
+
+        // Add each user as an LI
+        users.forEach(user => {
+            var li = document.createElement("li");
+            li.textContent = user;
+            ul.appendChild(li);
+        });
+
+        // Append the UL to the container DIV
+        containerDiv.appendChild(ul);
+    })
+
     // handle disconnections
     //  socket.on('disconnect', function () {
     //    alert('Disconnected from the server! Please try again.')
@@ -150,8 +241,8 @@
     // BELOW LINE OF CODE WILL DISPLAY THE CAMERA
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
     // PeerJS object
-    var peer = new Peer(username + roomId, { key: 's0xuhlvq9g2satt9' });
-    console.log("Peer id is:", peer)
+    var peer = new Peer(username, { key: '12345' });
+    console.log("Peer id is:", peer.id)
 
     peer.on('open', function () {
         $('#my-id').text(peer.id);
@@ -168,9 +259,16 @@
     });
 
     peer.on('error', function (err) {
-        alert(err.message);
+        if (err == undefined || err.type === 'disconnected' || err.type === 'network') {
+            if (peer.disconnected) {
+                console.log("Peer Connection Reconnecting...", err);
+                peer.reconnect();
+            }
+        } else {
+            alert("Peer Connection Disconnected ", err);
+            step2();
+        }
         // Return to step 2 if error occurs
-        step2();
     });
 
     // Click handlers setup
@@ -187,6 +285,7 @@
         });
         step1();
     });
+
     function step1() {
         // Get audio/video stream
         navigator.getUserMedia({ audio: true, video: true }, function (stream) {

@@ -9,7 +9,10 @@ var roomList = {}; // will store the users joined a particular oom
 module.exports = function (server) {
   var str = "Your code editor is ready to use!";
   // takes existing http server as an argument and attaches socket.io
-  var io = socketIO(server);
+  var io = socketIO(server,{
+    pingInterval: 2500, // How often to send a ping (default: 25000 ms)
+    pingTimeout: 60000   // Time to wait for a pong before closing the connection (default: 60000 ms)
+  });
 
   io.on("connection", function (socket) {
     console.log("Client connected with socker Id:", socket.id);
@@ -41,6 +44,8 @@ module.exports = function (server) {
       roomList[data.room].setName(socket, data.username);
       socket.room = data.room; //
       socket.join(data.room); // to create a socket based on room , anyone inside the socket can only send the message
+
+      io.to(socket.room).emit("ConnectedUsers", roomList[data.room].users);
     });
     // function to open a socket named chat message
     socket.on("chatMessage", function (data) {
@@ -51,6 +56,11 @@ module.exports = function (server) {
       // io.emit -->> broadcasts message to all the connected clients
       //   console.log("Message received from server", data);
     });
+
+    socket.on("pong", function (data) {
+      console.log("Pong received from client", data);
+    });
+    
     socket.on("disconnect", function () {
       console.log("client disconnected:");
       socket.leave(socket.room); // Once you leave the room, just disconnect.

@@ -1,5 +1,5 @@
 body {
-  padding-top: 70px;
+  padding-top: 60px;
 }
 .form-sign {
   max-width: 330px;
@@ -20,20 +20,25 @@ body {
   width: 15vw;
   height: auto;
   background-color: #eee;
-
+  border: 1px solid rgb(96, 96, 133);
+  border-radius: 3%;
 }
 #second-video{
   width: 15vw;
   height: auto;
-  background-color: #eee;
+  background-color: #493131;
+  border: 1px solid green;
+  border-radius: 3%;
 }
+
 #video-container{
   text-align: center;
 }
+
 #step1-error, #step2, #step3{
    display: none;
 }
+
 #my-id{
   font-weight: bold;
-   
 }
